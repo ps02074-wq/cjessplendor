@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子書櫃系統</title>
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* 現代化色彩計畫 */
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-hover: #059669;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            
+            --bg-color: #f8fafc;
+            --surface: #ffffff;
+            
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 隱藏樣式 (重要：修復預設顯示的問題) */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Layout */
+        .header-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 72px;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
+        }
+        .primary:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+        }
+
+        .success {
+            background: var(--success);
+            color: white;
+        }
+        .success:hover:not(:disabled) {
+            background: var(--success-hover);
+        }
+
+        .btn.small {
+            padding: 6px 14px;
+            font-size: 0.8125rem;
+        }
+
+        /* Admin Bar */
+        .admin-bar {
+            background: var(--surface);
+            color: var(--text-main);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .admin-bar span {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+        }
+
+        /* Toolbar & Category */
+        .toolbar {
+            margin: 32px 0 24px 0;
+            position: relative;
+        }
+
+        .category-list {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            /* 隱藏捲軸但保留功能 */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .category-list::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-btn {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 20px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .cat-btn:hover {
+            border-color: var(--text-light);
+            color: var(--text-main);
+        }
+
+        .cat-btn.active {
+            background: var(--text-main);
+            color: white;
+            border-color: var(--text-main);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Book Grid */
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 24px;
+            padding-bottom: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .book-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 32px;
+            }
+        }
+
+        .book-card {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .book-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+            border-color: transparent;
+        }
+
+        .btn-delete-book {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-delete-book:hover {
+            background: var(--danger);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .sortable-ghost { opacity: 0.4; }
+        .sortable-chosen { background: var(--border-color); }
+
+        .book-thumb-container {
+            position: relative;
+            width: 100%;
+            padding-top: 140%; /* Aspect ratio 1:1.4 */
+            background: #f1f5f9;
+            overflow: hidden;
+        }
+
+        .book-thumb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .book-card:hover .book-thumb {
+            transform: scale(1.05);
+        }
+
+        .book-info {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-tag {
+            display: inline-flex;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            background: #eef2ff;
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            align-self: flex-start;
+        }
+
+        .book-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 12px;
+            line-height: 1.5;
+            color: var(--text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .book-meta {
+            margin-top: auto;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .meta-heart {
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .meta-heart:hover {
+            color: #ec4899;
+            transform: scale(1.1);
+        }
+
+        .meta-heart.liked {
+            color: #ec4899;
+        }
+
+        .meta-heart.liked svg {
+            fill: #ec4899;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: flex !important; /* Override display none for transition */
+        }
+
+        .modal.hidden .modal-content {
+            transform: translateY(20px) scale(0.95);
+        }
+
+        .modal-content {
+            background: var(--surface);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            width: 500px;
+            max-width: 90%;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(0) scale(1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 1.25rem;
+            color: var(--text-main);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            background: var(--bg-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-btn:hover {
+            background: var(--border-color);
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-main);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: var(--transition);
+            background-color: var(--bg-color);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            background-color: var(--surface);
+        }
+
+        .form-group input[type="file"] {
+            display: block;
+            width: 100%;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            file-selector-button: border-none;
+            padding: 8px;
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-color);
+            cursor: pointer;
+        }
+
+        .status-log {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+            font-family: monospace;
+        }
+
+        .log-item { margin-bottom: 4px; }
+        .log-success { color: var(--success); }
+        .log-error { color: var(--danger); }
+        .log-normal { color: var(--text-muted); }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            color: var(--border-color);
+        }
+
+        /* File Rename List */
+        .file-list {
+            margin-top: 12px;
+            max-height: 160px;
+            overflow-y: auto;
+            border-radius: var(--radius-sm);
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            background: var(--surface);
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .file-item span {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .file-item span:first-child {
+            width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-item input {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.8125rem;
+        }
+        
+        .file-item input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Reader Overlay */
+        .reader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .reader-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: flex !important;
+        }
+
+        .reader-toolbar {
+            height: 56px;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #reader-title {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .reader-content {
+            flex: 1;
+            width: 100%;
+            height: calc(100% - 56px);
+            background: #1e293b;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            padding: 30px 0;
+        }
+
+        .footer a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: var(--primary);
+        }
+        
+        /* Loading Overlay with Spinner */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            color: var(--primary);
+            font-weight: 600;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            display: flex !important;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(79, 70, 229, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Utility Icons */
+        .icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Global Loading -->
+    <div id="loading-overlay" class="hidden">
+        <div class="spinner"></div>
+        <span>載入中...</span>
+    </div>
+
+    <div class="header-wrapper">
+        <div class="container">
+            <header class="header">
+                <h1>
+                    <!-- Book Icon -->
+                    <svg class="icon" style="width: 24px; height: 24px;" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                    GAS 電子書櫃
+                </h1>
+                <!-- 預設隱藏，登入後顯示 -->
+                <button id="btn-upload-modal" class="btn primary hidden">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    上傳書籍
+                </button>
+            </header>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="toolbar">
+            <div id="category-filter" class="category-list">
+                <button class="cat-btn active" data-id="all">全部書籍</button>
+            </div>
+        </div>
+
+        <main>
+            <!-- Admin Bar (Hidden by default) -->
+            <div id="admin-bar" class="admin-bar hidden">
+                <span>
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path><path d="M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="m17 20.66-1-1.73"></path><path d="M11 10.27 7 3.34"></path><path d="m20.66 17-1.73-1"></path><path d="m3.34 7 1.73 1"></path><path d="M14 12h8"></path><path d="M2 12h2"></path><path d="m20.66 7-1.73 1"></path><path d="m3.34 17 1.73-1"></path><path d="m17 3.34-1 1.73"></path><path d="m11 13.73-4 6.93"></path></svg>
+                    管理模式
+                </span>
+                <button id="btn-toggle-sort" class="btn small">開啟排序</button>
+                <button id="btn-add-cat" class="btn small">新增分類</button>
+                <button id="btn-logout" class="btn small" style="margin-left: auto; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);">登出</button>
+            </div>
+
+            <div id="book-grid" class="book-grid">
+                <!-- 書籍列表將渲染於此 -->
+                <div class="empty-state">目前沒有書籍</div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>
+                © 3cfish 電子書櫃 | 
+                <a href="#" id="link-admin-login">管理員登入</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- 上傳視窗 -->
+    <div id="upload-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="close-btn">
+                <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <h2>上傳 PDF 電子書</h2>
+
+            <div class="form-group">
+                <label>通關密碼</label>
+                <input type="password" id="upload-password" placeholder="請輸入上傳密碼">
+            </div>
+
+            <div class="form-group">
+                <label>選擇分類</label>
+                <select id="upload-category">
+                    <option value="">(無分類)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>選擇檔案 (可多選 PDF)</label>
+                <input type="file" id="upload-files" accept="application/pdf" multiple>
+                <!-- File Rename List -->
+                <div id="upload-file-list" class="file-list"></div>
+            </div>
+
+            <div id="upload-status" class="status-log"></div>
+
+            <div class="modal-footer">
+                <button id="btn-start-upload" class="btn primary">開始上傳</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Drive Preview Reader Overlay -->
+    <div id="pdf-reader" class="reader-overlay hidden">
+        <div class="reader-toolbar">
+            <div class="left"><span id="reader-title">書名載入中...</span></div>
+            <div class="right">
+                <button id="btn-close-reader" class="btn small" style="background: rgba(255,255,255,0.1); color: white;">
+                    <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    關閉
+                </button>
+            </div>
+        </div>
+        <div class="reader-content" id="reader-container">
+            <!-- Iframe 將自動插入於此處 -->
+        </div>
+    </div>
+
+    <!-- SortableJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <script>
+        // ==========================================================
+        // 重要設定：請將下方網址替換為您的 GAS Web App 發佈網址
+        // ==========================================================
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyRbt3yZ8wPQmI_sltB0r-MSLiH1lqJ-nqueYDlDiVGJ9441S6x-ZthkeUVh8--XNFz/exec'; 
+
+        // Global Variables
+        let allBooks = [];
+        let activeCategory = 'all';
+        let isAdmin = false;
+        let isSorting = false;
+        let bookSortable = null;
+        let catSortable = null;
+        let allCategories = [];
+        let isReaderOpen = false;
+
+        // SVG Icons Setup
+        const icons = {
+            view: `<svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>`,
+            heart: `<svg class="icon" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></svg>`,
+            trash: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>`,
+            emptyBook: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>`
+        };
+
+        // --- Core Fetch API ---
+        function runGoogleScript(funcName, args) {
+            if(funcName !== 'addView' && funcName !== 'addLike') {
+                showLoading();
+            }
+            
+            return new Promise((resolve, reject) => {
+                if (GAS_WEB_APP_URL.includes('AKfyc...')) {
+                    hideLoading();
+                    alert('系統提示：請先在 index.html 替換您的 GAS_WEB_APP_URL 網址！');
+                    return reject('Missing API URL');
+                }
+
+                const payload = {
+                    method: funcName,
+                    parameters: args || []
+                };
+
+                fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(res => {
+                    hideLoading();
+                    if (res.success) {
+                        resolve(res.data);
+                    } else {
+                        console.error('Server Error:', res.error);
+                        reject(res.error);
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    console.error('Fetch error:', err);
+                    alert('網路連線錯誤，請重試: ' + err);
+                    reject(err);
+                });
+            });
+        }
+
+        // --- Initialization ---
+        function initApp() {
+            const btnOpenUpload = document.getElementById('btn-upload-modal');
+            const btnCloseUpload = document.querySelector('.close-btn');
+            const btnStartUpload = document.getElementById('btn-start-upload');
+            const btnLogout = document.getElementById('btn-logout');
+            const btnToggleSort = document.getElementById('btn-toggle-sort');
+            const btnAddCat = document.getElementById('btn-add-cat');
+            const linkAdminLogin = document.getElementById('link-admin-login');
+            const modal = document.getElementById('upload-modal');
+            const statusLog = document.getElementById('upload-status');
+            const uploadFileInput = document.getElementById('upload-files');
+            const btnCloseReader = document.getElementById('btn-close-reader');
+
+            btnOpenUpload.onclick = (e) => {
+                if (e) e.preventDefault();
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    if (statusLog) statusLog.innerHTML = '';
+                    document.getElementById('upload-file-list').innerHTML = '';
+                    if (uploadFileInput) uploadFileInput.value = '';
+                }
+            };
+
+            if (uploadFileInput) uploadFileInput.onchange = handleFileSelect;
+            if (btnCloseUpload) btnCloseUpload.onclick = () => modal.classList.add('hidden');
+            if (btnStartUpload) btnStartUpload.onclick = handleUpload;
+            if (linkAdminLogin) linkAdminLogin.onclick = handleAdminLogin;
+            if (btnLogout) btnLogout.onclick = () => location.reload();
+            if (btnToggleSort) btnToggleSort.onclick = toggleSorting;
+            if (btnAddCat) btnAddCat.onclick = handleAddCategory;
+
+            // Reader Binds
+            if (btnCloseReader) btnCloseReader.onclick = closeReader;
+
+            // Keyboard Shortcuts & Click Outside Modal
+            window.addEventListener('keydown', (e) => {
+                if (!isReaderOpen) return;
+                if (e.key === 'Escape') closeReader();
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+
+            // Initial Load
+            loadData();
+        }
+
+        window.addEventListener('load', initApp);
+
+        // --- Handlers ---
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            const listContainer = document.getElementById('upload-file-list');
+            listContainer.innerHTML = '';
+
+            Array.from(files).forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+
+                const nameParts = file.name.split('.');
+                let ext = '';
+                let baseName = file.name;
+                if (nameParts.length > 1) {
+                    ext = '.' + nameParts.pop();
+                    baseName = nameParts.join('.');
+                }
+
+                item.innerHTML = `
+                    <span title="${file.name}">${file.name}</span>
+                    <input type="text" data-idx="${index}" value="${baseName}" placeholder="輸入書籍名稱"> 
+                    <span>${ext ? '.' + ext : ''}</span>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        async function handleUpload() {
+            const btnStartUpload = document.getElementById('btn-start-upload');
+            const password = document.getElementById('upload-password').value;
+            const fileInput = document.getElementById('upload-files');
+            const files = fileInput.files;
+            const nameInputs = document.querySelectorAll('#upload-file-list input');
+            const categoryId = document.getElementById('upload-category').value;
+
+            if (!password) { log('請輸入通關密碼', 'error'); return; }
+            if (files.length === 0) { log('請選擇至少一個檔案', 'error'); return; }
+
+            btnStartUpload.disabled = true;
+            btnStartUpload.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;border-top-color:white;margin-right:8px;"></div>上傳中...';
+
+            log(`準備上傳 ${files.length} 個檔案...`);
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                let customName = file.name;
+                if (nameInputs[i]) {
+                    const nameParts = file.name.split('.');
+                    const ext = nameParts.length > 1 ? nameParts.pop() : '';
+                    const val = nameInputs[i].value.trim();
+                    if (val) customName = val + (ext ? '.' + ext : '');
+                }
+
+                log(`[${i + 1}/${files.length}] 正在上傳: ${customName}...`);
+
+                try {
+                    const base64 = await toBase64(file);
+                    const data = base64.split(',')[1];
+
+                    await runGoogleScript('uploadBook', [data, customName, file.type, password, categoryId])
+                        .then(res => {
+                            if (res && res.success) {
+                                log(`✅ ${customName}: 上傳成功`, 'success');
+                            } else {
+                                log(`❌ ${customName}: 失敗 - ${res.message}`, 'error');
+                            }
+                        })
+                        .catch(err => log(`❌ ${customName}: 系統錯誤 - ${err}`, 'error'));
+                } catch (e) {
+                    log(`❌ ${customName}: 檔案讀取失敗`, 'error');
+                }
+            }
+
+            log('所有作業結束');
+            btnStartUpload.disabled = false;
+            btnStartUpload.textContent = '開始上傳';
+            loadData();
+        }
+
+        async function handleAdminLogin(e) {
+            if (e) e.preventDefault();
+            const pwd = prompt('請輸入管理密碼:');
+            if (pwd) {
+                try {
+                    const result = await runGoogleScript('loginAdmin', [pwd]);
+                    if (result) {
+                        isAdmin = true;
+                        // 登入成功後，解除隱藏管理列與上傳按鈕
+                        document.getElementById('admin-bar').classList.remove('hidden');
+                        document.getElementById('btn-upload-modal').classList.remove('hidden');
+                        renderCategories(allCategories);
+                        renderBooks(allBooks);
+                    } else {
+                        alert('密碼錯誤');
+                    }
+                } catch(e) {}
+            }
+        }
+
+        function toggleSorting() {
+            const btn = document.getElementById('btn-toggle-sort');
+            isSorting = !isSorting;
+            btn.textContent = isSorting ? '儲存排序' : '開啟排序';
+            btn.classList.toggle('primary', isSorting);
+
+            if (isSorting) enableSorting();
+            else disableSorting();
+        }
+
+        async function handleAddCategory() {
+            const name = prompt('請輸入分類名稱:');
+            if (name) {
+                await runGoogleScript('addCategory', [name]);
+                loadData();
+            }
+        }
+
+        // --- Data & Rendering ---
+        async function loadData() {
+            try {
+                const initialData = await runGoogleScript('getInitialData', []);
+                const config = initialData.config;
+                allBooks = initialData.books;
+                allCategories = initialData.categories;
+
+                if (config && config['網站名稱']) {
+                    document.title = config['網站名稱'];
+                    // update header title text without removing icon
+                    const titleEl = document.querySelector('.header h1');
+                    const iconHTML = titleEl.querySelector('svg').outerHTML;
+                    titleEl.innerHTML = iconHTML + ' ' + config['網站名稱'];
+                }
+
+                renderCategories(allCategories);
+                filterBooks(activeCategory);
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('book-grid').innerHTML = '<div class="empty-state">載入失敗: 請檢查網路連線或更新設定</div>';
+            }
+        }
+
+        function renderCategories(categories) {
+            const container = document.getElementById('category-filter');
+            const allBtn = container.querySelector('[data-id="all"]');
+            container.innerHTML = '';
+            container.appendChild(allBtn);
+
+            const uploadSelect = document.getElementById('upload-category');
+            if (uploadSelect) {
+                uploadSelect.innerHTML = '<option value="">(無分類)</option>';
+                categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    uploadSelect.appendChild(opt);
+                });
+            }
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                if(activeCategory === cat.id) btn.classList.add('active');
+                btn.textContent = cat.name;
+                btn.dataset.id = cat.id;
+
+                btn.onclick = () => {
+                    if (!isSorting) filterBooks(cat.id);
+                };
+
+                btn.oncontextmenu = (e) => {
+                    if (isAdmin && !isSorting) {
+                        e.preventDefault();
+                        if (confirm(`管理分類: ${cat.name}\n\n[確定] 修改名稱\n[取消] 刪除分類`)) {
+                            const newName = prompt('修改名稱:', cat.name);
+                            if (newName) runGoogleScript('renameCategory', [cat.id, newName]).then(loadData);
+                        } else {
+                            if (confirm(`確定要刪除分類「${cat.name}」嗎？`)) {
+                                runGoogleScript('deleteCategory', [cat.id]).then(loadData);
+                            }
+                        }
+                    }
+                };
+                container.appendChild(btn);
+            });
+
+            allBtn.onclick = () => filterBooks('all');
+        }
+
+        function filterBooks(catId) {
+            activeCategory = catId;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.id === String(catId)) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            if (catId === 'all') renderBooks(allBooks);
+            else renderBooks(allBooks.filter(b => String(b.categoryId) === String(catId)));
+        }
+
+        function renderBooks(books) {
+            const grid = document.getElementById('book-grid');
+            grid.innerHTML = '';
+
+            if (books.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `${icons.emptyBook} <div>此分類下目前沒有書籍</div>`;
+                grid.appendChild(emptyState);
+                return;
+            }
+
+            books.forEach(book => {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.dataset.id = book.id;
+
+                card.onclick = () => {
+                    if (!isSorting) openReader(book.fileId, book.name, book.id);
+                };
+
+                // Image Container to maintain aspect ratio
+                const thumbContainer = document.createElement('div');
+                thumbContainer.className = 'book-thumb-container';
+
+                const img = document.createElement('img');
+                img.className = 'book-thumb';
+                img.loading = 'lazy';
+                img.src = 'https://drive.google.com/thumbnail?id=' + book.fileId + '&sz=w400';
+                img.onerror = function () { 
+                    this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20280%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_188%20text%20%7B%20fill%3A%2394a3b8%3Bfont-weight%3Anormal%3Bfont-family%3AHelvetica%2C%20monospace%3Bfont-size%3A12pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_188%22%3E%3Crect%20width%3D%22200%22%20height%3D%22280%22%20fill%3D%22%23f1f5f9%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2260%22%20y%3D%22145%22%3ENo%20Cover%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E'; 
+                };
+                
+                thumbContainer.appendChild(img);
+                card.appendChild(thumbContainer);
+
+                const info = document.createElement('div');
+                info.className = 'book-info';
+
+                const catName = allCategories.find(c => String(c.id) === String(book.categoryId))?.name || '未分類';
+                const catTag = document.createElement('span');
+                catTag.className = 'book-tag';
+                catTag.textContent = catName;
+
+                const title = document.createElement('div');
+                title.className = 'book-title';
+                title.title = book.name;
+                title.textContent = book.name;
+
+                if (isAdmin) {
+                    const btnDelete = document.createElement('button');
+                    btnDelete.className = 'btn-delete-book';
+                    btnDelete.innerHTML = icons.trash;
+                    btnDelete.title = '刪除書籍';
+                    btnDelete.onclick = (e) => {
+                        e.stopPropagation(); 
+                        if (confirm(`確定要刪除「${book.name}」嗎？\n(注意：這將永久刪除 PDF 檔案)`)) {
+                            runGoogleScript('deleteBook', [book.id]).then(() => {
+                                loadData();
+                            });
+                        }
+                    };
+                    card.appendChild(btnDelete);
+                }
+
+                info.appendChild(catTag); 
+                info.appendChild(title);
+
+                const meta = document.createElement('div');
+                meta.className = 'book-meta';
+
+                const metaView = document.createElement('div');
+                metaView.className = 'meta-item';
+                metaView.innerHTML = `${icons.view} <span>${book.views || 0}</span>`;
+
+                const metaLike = document.createElement('div');
+                metaLike.className = 'meta-item meta-heart';
+                metaLike.innerHTML = `${icons.heart} <span>${book.likes || 0}</span>`;
+                metaLike.onclick = (e) => {
+                    e.stopPropagation();
+                    runGoogleScript('addLike', [book.id]).then(res => {
+                        if (res && res.success) {
+                            book.likes = res.newValue;
+                            metaLike.querySelector('span').textContent = res.newValue;
+                            metaLike.classList.add('liked'); 
+                        }
+                    });
+                };
+
+                meta.appendChild(metaView);
+                meta.appendChild(metaLike);
+                info.appendChild(meta);
+
+                card.appendChild(info);
+                grid.appendChild(card);
+            });
+        }
+
+        // --- Sorting ---
+        function enableSorting() {
+            const grid = document.getElementById('book-grid');
+            bookSortable = new Sortable(grid, {
+                animation: 150,
+                ghostClass: 'sortable-chosen'
+            });
+
+            const catList = document.getElementById('category-filter');
+            catSortable = new Sortable(catList, {
+                animation: 150,
+                filter: '.active',
+                onMove: function (evt) { return evt.related.dataset.id !== 'all'; }
+            });
+        }
+
+        async function disableSorting() {
+            if (bookSortable) {
+                const newOrder = bookSortable.toArray();
+                await runGoogleScript('saveBookOrder', [newOrder]);
+                bookSortable.destroy();
+                bookSortable = null;
+            }
+            if (catSortable) {
+                const newOrder = catSortable.toArray().filter(id => id !== 'all');
+                await runGoogleScript('saveCategoryOrder', [newOrder]);
+                catSortable.destroy();
+                catSortable = null;
+            }
+            loadData();
+        }
+
+        // --- Utilities ---
+        function log(msg, type = 'normal') {
+            const statusLog = document.getElementById('upload-status');
+            if (!statusLog) return;
+            const div = document.createElement('div');
+            div.className = `log-item log-${type}`;
+            div.textContent = msg;
+            statusLog.appendChild(div);
+            statusLog.scrollTop = statusLog.scrollHeight;
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        // ==========================================
+        //  全新輕量化 PDF 閱讀器 (Iframe 預覽模式)
+        // ==========================================
+        function openReader(fileId, title, bookId) {
+            isReaderOpen = true;
+            document.getElementById('pdf-reader').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+            
+            document.getElementById('reader-title').textContent = title || '閱讀中';
+
+            const container = document.getElementById('reader-container');
+            
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            
+            container.innerHTML = ''; 
+            container.appendChild(iframe); 
+
+            if (bookId) {
+                runGoogleScript('addView', [bookId]);
+            }
+        }
+
+        function closeReader() {
+            isReaderOpen = false;
+            document.getElementById('pdf-reader').classList.add('hidden');
+            document.body.style.overflow = '';
+            document.getElementById('reader-container').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
